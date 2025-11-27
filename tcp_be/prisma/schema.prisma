@@ -1,15 +1,91 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  nickname  String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  listings  Listing[]
+}
+
+model Listing {
+  id        Int       @id @default(autoincrement())
+  title     String
+  items     ListingItem[]
+  status    ListingStatus @default(ON_SALE)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  sellerId  Int
+  seller    User      @relation(fields: [sellerId], references: [id])
+}
+
+enum ListingStatus {
+  ON_SALE
+  RESERVED
+  SOLD
+}
+
+
+enum ListingItemType {
+  CARD
+  ACCESSORY
+  OTHER
+}
+
+model ListingItem {
+  id           Int             @id @default(autoincrement())
+  listingId    Int
+  listing      Listing         @relation(fields: [listingId], references: [id])
+
+  type         ListingItemType
+  cardInfoId   Int
+  cardInfo     CardInfo  @relation(fields:[cardInfoId] ,references:[id])
+  detail       String?
+  condition    String?
+  quantity     Int
+  pricePerUnit Int
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+enum CardNation{
+  KR
+  JP
+  EN
+  Other
+}
+
+enum Rarity{
+  N
+  R
+  ParallelR
+  SuperR
+  UltraR
+  UltimateR
+  PrismaticR
+  Other
+}
+model CardName{
+  id   Int     @id @default(autoincrement())
+  name String   @unique
+  cardInfos CardInfo[]
+}
+model CardInfo{
+  id Int @id @default(autoincrement())
+  cardNameId Int
+  cardName CardName @relation(fields : [cardNameId], references : [id])
+  cardCode String  @unique
+  nation CardNation
+  rarity Rarity 
+  listingItems ListingItem[]
 }
