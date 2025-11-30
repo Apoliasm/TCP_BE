@@ -11,17 +11,23 @@ import {
 import { CardsService } from './cards.service';
 import { CreateCardNameDto } from './dto/card-name.dto';
 import { CreateCardInfoDto, FindCardInfoDto } from './dto/card-info.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 @Controller('cards')
 export class CardsController {
   constructor(private readonly cardService: CardsService) {}
 
   // 🔹 CardName 생성 (카드 이름만 등록)
   @Post('names')
+  @ApiOperation({ summary: '카드 이름 등록 or 조회 (upsert)' })
+  @ApiResponse({ status: 201, description: '카드 이름 생성 또는 기존 값 반환' })
   createCardName(@Body() dto: CreateCardNameDto) {
     return this.cardService.createCardName(dto);
   }
 
   // 🔹 CardInfo 생성 (카드 상세 정보 등록)
+  @ApiOperation({
+    summary: '카드 상세 정보 등록 or 조회',
+  })
   @Post('infos')
   createCardInfo(@Body() dto: CreateCardInfoDto) {
     return this.cardService.createCardInfo(dto);
