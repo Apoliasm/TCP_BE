@@ -47,8 +47,8 @@ model ListingItem {
   listing      Listing         @relation(fields: [listingId], references: [id])
 
   type         ListingItemType
-  cardInfoId   Int
-  cardInfo     CardInfo  @relation(fields:[cardInfoId] ,references:[id])
+  cardInfoId   Int?
+  cardInfo     CardInfo?  @relation(fields:[cardInfoId] ,references:[id])
   detail       String?
   condition    String?
   quantity     Int
@@ -68,11 +68,12 @@ enum CardNation{
 enum Rarity{
   N
   R
-  ParallelR
-  SuperR
-  UltraR
-  UltimateR
-  PrismaticR
+  SR
+  UR
+  UL
+  Prismatic
+  UPR
+  NPR
   Other
 }
 model CardName{
