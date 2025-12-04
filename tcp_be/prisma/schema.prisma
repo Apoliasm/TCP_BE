@@ -41,14 +41,22 @@ enum ListingItemType {
   OTHER
 }
 
+model ItemInfo{
+  id Int @id @default(autoincrement())
+  type ListingItemType
+  listingItems  ListingItem[]
+
+  cardInfo CardInfo?
+  accessoryInfo AccessoryInfo?
+}
+
 model ListingItem {
   id           Int             @id @default(autoincrement())
   listingId    Int
   listing      Listing         @relation(fields: [listingId], references: [id])
 
-  type         ListingItemType
-  cardInfoId   Int?
-  cardInfo     CardInfo?  @relation(fields:[cardInfoId] ,references:[id])
+  infoId   Int?
+  itemInfo     ItemInfo?  @relation(fields:[infoId] ,references:[id])
   detail       String?
   condition    String?
   quantity     Int
@@ -56,6 +64,14 @@ model ListingItem {
 
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
+}
+
+
+
+model AccessoryInfo{
+  itemInfoId  Int    @id
+  itemInfo    ItemInfo @relation(fields: [itemInfoId], references: [id])
+  name String
 }
 
 enum CardNation{
@@ -76,17 +92,36 @@ enum Rarity{
   NPR
   Other
 }
+
 model CardName{
   id   Int     @id @default(autoincrement())
   name String   @unique
   cardInfos CardInfo[]
+  passcode String? 
 }
-model CardInfo{
+
+model CardCandidates {
   id Int @id @default(autoincrement())
-  cardNameId Int
-  cardName CardName @relation(fields : [cardNameId], references : [id])
+  name String @unique
+  CardInfos CardInfo[]
+}
+
+model CardInfo{
+  itemInfoId Int @id
+  itemInfo   ItemInfo @relation(fields: [itemInfoId], references: [id])
+  
+  cardNameId Int?
+  cardName CardName? @relation(fields : [cardNameId], references : [id])
+  candidateId Int?
+  candidate CardCandidates? @relation(fields: [candidateId], references: [id])
   cardCode String  @unique
   nation CardNation
   rarity Rarity 
-  listingItems ListingItem[]
+}
+
+model SyncMeta {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
 }
