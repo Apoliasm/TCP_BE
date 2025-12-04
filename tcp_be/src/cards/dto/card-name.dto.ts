@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Length } from 'class-validator';
+import { IsInt, IsString, Length } from 'class-validator';
 
 export class CreateCardNameDto {
   @ApiProperty({
@@ -11,7 +11,34 @@ export class CreateCardNameDto {
   name: string;
 }
 
-export class CardNameResponseDto {
+export class ReponseCardNameDto {
+  @ApiProperty({})
+  @IsInt()
   id: number;
+  @IsString()
+  @Length(1, 100)
+  name: string;
+}
+
+export class CreateCardCandidatesDto {
+  @ApiProperty({
+    description: '카드 이름',
+    example: '섬도희-제로',
+  })
+  @IsString()
+  @Length(1, 100)
+  name: string;
+}
+
+export class ResponseCardCandidateDto {
+  @ApiProperty({})
+  @IsInt()
+  id: number;
+  @ApiProperty({
+    description: '카드 이름',
+    example: '섬도희-제로',
+  })
+  @IsString()
+  @Length(1, 100)
   name: string;
 }

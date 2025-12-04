@@ -9,9 +9,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { CardsService } from './cards.service';
-import { CreateCardNameDto } from './dto/card-name.dto';
-import { CreateCardInfoDto, FindCardInfoDto } from './dto/card-info.dto';
+import {
+  CreateCardNameDto,
+  ResponseCardCandidateDto,
+} from './dto/card-name.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ReponseCardNameDto } from './dto/card-name.dto';
 @Controller('cards')
 export class CardsController {
   constructor(private readonly cardService: CardsService) {}
@@ -24,31 +27,24 @@ export class CardsController {
     return this.cardService.createCardName(dto);
   }
 
-  // 🔹 CardInfo 생성 (카드 상세 정보 등록)
-  @ApiOperation({
-    summary: '카드 상세 정보 등록 or 조회',
-  })
-  @Post('infos')
-  createCardInfo(@Body() dto: CreateCardInfoDto) {
-    return this.cardService.createCardInfo(dto);
-  }
-
   // 🔹 CardName 하나 조회 (id 기준)
+  @ApiResponse({
+    type: ReponseCardNameDto,
+  })
   @Get('names/:id')
-  getCardName(@Param('id', ParseIntPipe) id: number) {
+  getCardNameById(@Param('id', ParseIntPipe) id: number) {
     return this.cardService.getCardNameById(id);
   }
 
-  // 🔹 CardInfo 하나 조회 (id 기준)
-  @Get('infos/:id')
-  getCardInfo(@Param('id', ParseIntPipe) id: number) {
-    return this.cardService.getCardInfoById(id);
+  //CardCandidate 하나 조회
+  @ApiResponse({
+    type: ResponseCardCandidateDto,
+  })
+  @Get('candidates/:id')
+  getCardCandidateById(@Param('id', ParseIntPipe) id: number) {
+    return this.cardService.getCardCandidateById(id);
   }
 
   // 🔹 CardInfo 검색 (cardCode / nation / rarity 등으로)
   // 예: GET /cards/infos?cardCode=XXXX
-  @Get('infos')
-  findCardInfos(@Query() query: FindCardInfoDto) {
-    return this.cardService.findCardInfos(query);
-  }
 }

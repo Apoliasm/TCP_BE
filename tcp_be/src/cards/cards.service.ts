@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { CardNation, Rarity } from '@prisma/client';
 import { CreateCardNameDto } from './dto/card-name.dto';
-import { CreateCardInfoDto, FindCardInfoDto } from './dto/card-info.dto';
+
 // cards.service.ts
 @Injectable()
 export class CardsService {
@@ -51,43 +50,15 @@ export class CardsService {
     });
   }
 
-  async createCardInfo(dto: CreateCardInfoDto) {
-    return this.prisma.cardInfo.upsert({
-      where: { cardCode: dto.cardCode },
-      update: {
-        // 필요 시 업데이트 정책
-        nation: dto.nation,
-        rarity: dto.rarity,
-      },
-      create: {
-        cardCode: dto.cardCode,
-        nation: dto.nation,
-        rarity: dto.rarity,
-        cardNameId: dto.cardNameId,
-      },
-    });
-  }
-
   async getCardNameById(id: number) {
     return this.prisma.cardName.findUnique({
       where: { id },
     });
   }
 
-  async getCardInfoById(id: number) {
-    return this.prisma.cardInfo.findUnique({
+  async getCardCandidateById(id: number) {
+    return this.prisma.cardCandidates.findUnique({
       where: { id },
-    });
-  }
-
-  async findCardInfos(query: FindCardInfoDto) {
-    return this.prisma.cardInfo.findMany({
-      where: {
-        cardCode: query.cardCode,
-        cardNameId: query.cardNameId,
-        nation: query.nation,
-        rarity: query.rarity,
-      },
     });
   }
 }
