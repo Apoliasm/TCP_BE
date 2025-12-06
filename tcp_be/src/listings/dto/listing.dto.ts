@@ -11,7 +11,7 @@ import { Type } from 'class-transformer';
 import { ListingStatus } from '@prisma/client';
 import {
   CreateListingItemDto,
-  ListingItemResponseDto,
+  ResponseListingItemto,
 } from 'src/listings/dto/listing-item.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -50,7 +50,7 @@ export class CreateListingDto {
   items: CreateListingItemDto[];
 }
 
-export class ListingResponseDto {
+export class ResponseListingDto {
   @ApiProperty()
   id: number;
 
@@ -69,7 +69,27 @@ export class ListingResponseDto {
   @ApiProperty()
   updatedAt: Date;
 
-  @ApiProperty({ type: [ListingItemResponseDto] })
-  @Type(() => ListingItemResponseDto)
-  items: ListingItemResponseDto[];
+  @ApiProperty({ type: [ResponseListingItemto] })
+  @Type(() => ResponseListingItemto)
+  items: ResponseListingItemto[];
+}
+
+export class ResponseListingSummaryDto {
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  title: string;
+
+  @ApiProperty()
+  sellerId: number;
+
+  @ApiProperty({ enum: ListingStatus })
+  status: ListingStatus;
+
+  @ApiProperty()
+  createdAt: Date;
+
+  @ApiProperty()
+  updatedAt: Date;
 }

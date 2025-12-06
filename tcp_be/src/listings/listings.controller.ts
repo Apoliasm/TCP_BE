@@ -7,7 +7,11 @@ import {
   Post,
 } from '@nestjs/common';
 import { ListingsService } from './listings.service';
-import { CreateListingDto, ListingResponseDto } from './dto/listing.dto';
+import {
+  CreateListingDto,
+  ResponseListingDto,
+  ResponseListingSummaryDto,
+} from './dto/listing.dto';
 import { ApiBody, ApiResponse } from '@nestjs/swagger';
 
 @Controller('listings')
@@ -24,7 +28,7 @@ export class ListingsController {
   }
 
   @ApiResponse({
-    type: [ListingResponseDto],
+    type: [ResponseListingSummaryDto],
   })
   @Get()
   findAll() {
@@ -32,7 +36,7 @@ export class ListingsController {
   }
 
   @ApiResponse({
-    type: ListingResponseDto,
+    type: ResponseListingDto,
   })
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
