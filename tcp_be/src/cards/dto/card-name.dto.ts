@@ -30,7 +30,7 @@ export class CreateCardCandidatesDto {
   name: string;
 }
 
-export class ResponseCardCandidateDto {
+export class CardCandidateResponseDto {
   @ApiProperty({})
   @IsInt()
   id: number;

@@ -64,7 +64,7 @@ export class CreateAccessoryInfoDto {
   name: string;
 }
 
-export class ResponseItemInfoDto {
+export class ItemInfoResponseDto {
   @IsInt()
   id: number;
 
@@ -72,7 +72,7 @@ export class ResponseItemInfoDto {
   type: ListingItemType;
 }
 
-export class ResponseCardInfoDto {
+export class CardInfoResponseDto {
   @IsInt()
   itemInfoId: number;
 
@@ -97,7 +97,7 @@ export class ResponseCardInfoDto {
   rarity?: Rarity;
 }
 
-export class ResponseAccessoryInfoDto {
+export class AccessoryInfoResponseDto {
   @IsInt()
   id: number;
 

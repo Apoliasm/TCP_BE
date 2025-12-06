@@ -11,7 +11,7 @@ import { ItemsService } from './items.service';
 import {
   CreateCardInfoDto,
   CreateAccessoryInfoDto,
-  ResponseItemInfoDto,
+  ItemInfoResponseDto,
 } from 'src/items/dto/items-info.dto';
 import { ApiResponse } from '@nestjs/swagger';
 
@@ -48,7 +48,7 @@ export class ItemsController {
    * GET /items/info/:id
    */
   @ApiResponse({
-    type: ResponseItemInfoDto,
+    type: ItemInfoResponseDto,
   })
   @Get('info/:id')
   findItemInfo(@Param('id', ParseIntPipe) id: number) {

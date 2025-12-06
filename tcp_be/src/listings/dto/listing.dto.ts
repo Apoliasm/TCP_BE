@@ -11,10 +11,10 @@ import { Type } from 'class-transformer';
 import { ListingStatus } from '@prisma/client';
 import {
   CreateListingItemDto,
-  ResponseListingItemto,
+  ListingItemResponseDto,
 } from 'src/listings/dto/listing-item.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
+import { ListingImageResponseDto } from './listing-image.dto';
 export class CreateListingDto {
   @ApiProperty({
     description: '게시글 제목',
@@ -50,7 +50,7 @@ export class CreateListingDto {
   items: CreateListingItemDto[];
 }
 
-export class ResponseListingDto {
+export class ListingResponseDto {
   @ApiProperty()
   id: number;
 
@@ -69,12 +69,19 @@ export class ResponseListingDto {
   @ApiProperty()
   updatedAt: Date;
 
-  @ApiProperty({ type: [ResponseListingItemto] })
-  @Type(() => ResponseListingItemto)
-  items: ResponseListingItemto[];
+  @ApiProperty({ type: [ListingItemResponseDto] })
+  @Type(() => ListingItemResponseDto)
+  items: ListingItemResponseDto[];
+
+  @ApiProperty({ type: [ListingImageResponseDto] })
+  images: ListingImageResponseDto[];
+
+  // 필요하면 flat 아이템 리스트도:
+  // @ApiProperty({ type: [ListingItemResponseDto] })
+  // items: ListingItemResponseDto[];
 }
 
-export class ResponseListingSummaryDto {
+export class ListingSummaryResponseDto {
   @ApiProperty()
   id: number;
 

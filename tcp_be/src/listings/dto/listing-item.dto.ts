@@ -78,7 +78,7 @@ export class CreateListingItemDto {
   pricePerUnit: number;
 }
 
-export class ResponseListingItemto {
+export class ListingItemResponseDto {
   @ApiProperty()
   @IsInt()
   listingId: number;

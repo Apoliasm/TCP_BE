@@ -11,7 +11,7 @@ import {
 import { CardsService } from './cards.service';
 import {
   CreateCardNameDto,
-  ResponseCardCandidateDto,
+  CardCandidateResponseDto,
 } from './dto/card-name.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ReponseCardNameDto } from './dto/card-name.dto';
@@ -38,7 +38,7 @@ export class CardsController {
 
   //CardCandidate 하나 조회
   @ApiResponse({
-    type: ResponseCardCandidateDto,
+    type: CardCandidateResponseDto,
   })
   @Get('candidates/:id')
   getCardCandidateById(@Param('id', ParseIntPipe) id: number) {
