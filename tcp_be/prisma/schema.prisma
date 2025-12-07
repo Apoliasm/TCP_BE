@@ -20,6 +20,7 @@ model Listing {
   id        Int       @id @default(autoincrement())
   title     String
   items     ListingItem[]
+  images    ListingImage[]
   status    ListingStatus @default(ON_SALE)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -32,6 +33,18 @@ enum ListingStatus {
   ON_SALE
   RESERVED
   SOLD
+  DRAFT
+}
+
+model ListingImage {
+  id        Int       @id @default(autoincrement())
+  listingId Int?
+  listing   Listing?   @relation(fields: [listingId], references: [id])
+
+  imageUrl  String
+  order     Int?      // 정렬용
+
+  items     ListingItem[]
 }
 
 
@@ -54,6 +67,10 @@ model ListingItem {
   id           Int             @id @default(autoincrement())
   listingId    Int
   listing      Listing         @relation(fields: [listingId], references: [id])
+
+  // 이 아이템이 어떤 사진 아래에 표시될지 (없으면 null)
+  listingImageId Int?
+  listingImage   ListingImage? @relation(fields: [listingImageId], references: [id])
 
   infoId   Int?
   itemInfo     ItemInfo?  @relation(fields:[infoId] ,references:[id])
