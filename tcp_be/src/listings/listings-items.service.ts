@@ -33,8 +33,37 @@ export class ListingItemsService {
 
     const createdItems: ListingItem[] = [];
 
+    // 이미지를 여러 아이템이 공유할 수 있으므로, 캐시를 두면 DB 조회 줄일 수 있음
+    const imageCache = new Map<number, { id: number }>();
+
     // 비동기 루프 (for...of + await: 순차 실행 / 필요하면 Promise.all로 병렬화도 가능)
     for (const item of items) {
+      // 0) listingImageId가 있다면, 해당 이미지가 이 listing에 속하는지 검증
+      let listingImageId: number | null = null;
+      if (item.listingImageId) {
+        let image = imageCache.get(item.listingImageId);
+        if (!image) {
+          image = await this.prisma.listingImage.findUniqueOrThrow({
+            where: { id: item.listingImageId },
+            select: { id: true },
+          });
+          if (!image) {
+            throw new BadRequestException(
+              `id=${item.listingImageId} 인 ListingImage를 찾을 수 없습니다.`,
+            );
+          }
+          imageCache.set(item.listingImageId, image);
+        }
+
+        if (image.id !== listingId) {
+          throw new BadRequestException(
+            `ListingItem이 연결하려는 ListingImage(id=${item.listingImageId})는 listingId=${image.id}에 속해 있습니다. 현재 listingId=${listingId}와 다릅니다.`,
+          );
+        }
+
+        listingImageId = item.listingImageId;
+      }
+
       // 1_ ItemInfo를 type에 따라 캐스팅하기
       const itemInfoDto =
         item.type === 'CARD'
@@ -79,6 +108,7 @@ export class ListingItemsService {
           condition: item.condition,
           quantity: item.quantity,
           pricePerUnit: item.pricePerUnit,
+          listingImageId: listingImageId,
         },
       });
 

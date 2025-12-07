@@ -23,6 +23,11 @@ export class CreateListingItemDto {
   // @IsInt()
   // listingId: number;
 
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsInt()
+  listingImageId?: number;
+
   @ApiProperty({
     description: '판매 품목 종류 card, acccessory',
     enum: ListingItemType,

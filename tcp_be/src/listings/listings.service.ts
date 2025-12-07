@@ -21,12 +21,25 @@ export class ListingsService {
       },
     });
 
-    //2. listingitems 생성
+    //2. 새로운 listing에 연결될 listingitems 생성
     const items = await this.listingItem.createForListing(
       listing.id,
       dto.items,
     );
-    //3.listingItems를 listing에 추가하기
+
+    //3. 업로드된 이미지를 게시글에 연결
+    for (const images of dto.images) {
+      const imageId = await this.prisma.listingImage.update({
+        where: {
+          id: images.id,
+        },
+        data: {
+          listingId: listing.id,
+        },
+      });
+    }
+
+    //4.listingItems를 listing에 추가하기
     return this.prisma.listing.findUnique({
       where: { id: listing.id },
       include: {
@@ -59,7 +72,12 @@ export class ListingsService {
     const listing = await this.prisma.listing.findUnique({
       where: { id },
       include: {
-        items: true,
+        images: {
+          orderBy: { order: 'asc' },
+          include: {
+            items: true,
+          },
+        },
       },
     });
 

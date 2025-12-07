@@ -40,6 +40,7 @@ export class CreateListingDto {
   @IsEnum(ListingStatus)
   status?: ListingStatus; // 안 보내면 ON_SALE 기본값
 
+  @IsOptional()
   @ApiProperty({
     type: [CreateListingItemDto],
     description: '판매 품목들',
@@ -48,6 +49,14 @@ export class CreateListingDto {
   @ValidateNested({ each: true })
   @Type(() => CreateListingItemDto)
   items: CreateListingItemDto[];
+
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @ApiPropertyOptional({
+    type: [ListingImageResponseDto],
+  })
+  @Type(() => ListingImageResponseDto)
+  images: ListingImageResponseDto[];
 }
 
 export class ListingResponseDto {
@@ -74,6 +83,7 @@ export class ListingResponseDto {
   items: ListingItemResponseDto[];
 
   @ApiProperty({ type: [ListingImageResponseDto] })
+  @Type(() => ListingImageResponseDto)
   images: ListingImageResponseDto[];
 
   // 필요하면 flat 아이템 리스트도:
