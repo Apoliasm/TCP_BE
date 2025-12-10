@@ -11,7 +11,7 @@ export class CreateCardNameDto {
   name: string;
 }
 
-export class ReponseCardNameDto {
+export class CardNameResponseDto {
   @ApiProperty({})
   @IsInt()
   id: number;

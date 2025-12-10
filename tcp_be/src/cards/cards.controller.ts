@@ -14,7 +14,7 @@ import {
   CardCandidateResponseDto,
 } from './dto/card-name.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { ReponseCardNameDto } from './dto/card-name.dto';
+import { CardNameResponseDto } from './dto/card-name.dto';
 @Controller('cards')
 export class CardsController {
   constructor(private readonly cardService: CardsService) {}
@@ -29,7 +29,7 @@ export class CardsController {
 
   // 🔹 CardName 하나 조회 (id 기준)
   @ApiResponse({
-    type: ReponseCardNameDto,
+    type: CardNameResponseDto,
   })
   @Get('names/:id')
   getCardNameById(@Param('id', ParseIntPipe) id: number) {

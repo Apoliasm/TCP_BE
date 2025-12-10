@@ -8,4 +8,4 @@ import { PrismaService } from 'src/database/prisma.service';
   providers: [CardsService, PrismaService],
   exports: [CardsService], // Listing 등 다른 모듈에서 CardService 쓰고 싶을 수 있으니 export
 })
-export class CardModule {}
+export class CardsModule {}
