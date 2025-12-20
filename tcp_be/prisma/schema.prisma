@@ -131,9 +131,11 @@ model CardInfo{
   cardName CardName? @relation(fields : [cardNameId], references : [id])
   candidateId Int?
   candidate CardCandidates? @relation(fields: [candidateId], references: [id])
-  cardCode String  @unique
+  cardCode String 
   nation CardNation
   rarity Rarity 
+  @@unique([cardCode, rarity])
+
 }
 
 model SyncMeta {
