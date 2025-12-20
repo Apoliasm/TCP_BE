@@ -6,6 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 // ✅ Express 전용 타입 + path join 추가
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   // ✅ 제네릭으로 NestExpressApplication 명시
@@ -25,11 +26,13 @@ async function bootstrap() {
     credentials: true,
   });
 
+  const uploadsPath = join(process.cwd(), '/uploads');
+  console.log('Static uploads rootPath:', uploadsPath);
   // 정적 이미지 서빙 (/uploads/** → 실제 uploads 디렉토리)
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  app.useStaticAssets(uploadsPath, {
     prefix: '/uploads/', // 예: http://localhost:3000/uploads/파일명.jpg
   });
-
+  app.useGlobalInterceptors(new LoggingInterceptor());
   const config = new DocumentBuilder()
     .setTitle('TCP 카드 거래 API')
     .setDescription('TCP 프로젝트 백엔드 API 명세서')
