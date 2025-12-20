@@ -4,9 +4,9 @@ import { ItemsService } from 'src/items/items.service';
 import { CreateListingItemDto } from './dto/listing-item.dto';
 import {
   CardCandidates,
-  ItemInfo,
   ListingItem,
   ListingItemType,
+  Prisma,
 } from '@prisma/client';
 
 @Injectable()
@@ -55,12 +55,6 @@ export class ListingItemsService {
           imageCache.set(item.listingImageId, image);
         }
 
-        if (image.id !== listingId) {
-          throw new BadRequestException(
-            `ListingItem이 연결하려는 ListingImage(id=${item.listingImageId})는 listingId=${image.id}에 속해 있습니다. 현재 listingId=${listingId}와 다릅니다.`,
-          );
-        }
-
         listingImageId = item.listingImageId;
       }
 
@@ -75,12 +69,7 @@ export class ListingItemsService {
 
       // 2) 처음 등록되는 카드 이름이라면 후보군 테이블에 등록하기
       let newCardCandidate: null | CardCandidates = null;
-      if (
-        item.type === 'CARD' &&
-        !item.cardInfo?.cardNameId &&
-        !item.cardInfo?.candidateId &&
-        item.cardInfo?.candidateInfo
-      ) {
+      if (item.type === 'CARD' && item.cardInfo?.candidateInfo) {
         newCardCandidate = await this.prisma.cardCandidates.create({
           data: {
             name: item.cardInfo.candidateInfo.name,
@@ -116,6 +105,97 @@ export class ListingItemsService {
     }
 
     return createdItems;
+  }
+
+  async createListingItemTx(
+    tx: Prisma.TransactionClient,
+    listingId: number,
+    items: CreateListingItemDto[],
+  ) {
+    if (!items?.length)
+      throw new BadRequestException('생성할 ListingItem이 없습니다.');
+
+    //0) 입력받은 info를 뺀 array
+    const itemsDrafts: CreateListingItemDto[] = items.map((item) => {
+      const { accessoryInfo, cardInfo, ...rest } = item;
+      return rest;
+    });
+
+    // 1) infoId 없는 그룹 분리
+    const needCreate = items.filter((item) => item.infoId == null);
+
+    // 2) infoId 없는 아이템 -> ItemInfo를 만들어서 infoId 매핑 채우기
+    for (const p of needCreate) {
+      let { cardInfo, accessoryInfo } = p;
+
+      let candidateName = p.cardInfo?.candidateInfo?.name;
+      let candidateId: number | null = null;
+      let itemInfo: { id: number } | null = null;
+      //2-1) 처음 들어오는 카드정보 -> cardCandidate 등록
+      if (p.type === ListingItemType.CARD && candidateName && cardInfo) {
+        let { candidateId, candidateInfo, cardNameId, ...restInfo } = cardInfo;
+        let { id } = await tx.cardCandidates.upsert({
+          where: {
+            name: candidateName,
+          },
+          create: {
+            name: candidateName,
+          },
+          update: {},
+          select: {
+            id: true,
+          },
+        });
+        candidateId = id;
+        //2-2)itemInfo 생성
+        itemInfo = await tx.itemInfo.create({
+          data: {
+            type: p.type,
+            cardInfo: {
+              create: {
+                ...restInfo,
+                candidateId,
+              },
+            },
+          },
+          select: {
+            id: true,
+          },
+        });
+      } else if (p.type === ListingItemType.ACCESSORY && accessoryInfo) {
+        //2-2) itemInfo 생성
+        itemInfo = await tx.itemInfo.create({
+          data: {
+            type: p.type,
+            accessoryInfo: {
+              create: {
+                ...accessoryInfo,
+              },
+            },
+          },
+          select: {
+            id: true,
+          },
+        });
+      }
+      //2-3) 얕은 복사로 만든 p에 infoId 적용하기
+      p.infoId = itemInfo?.id;
+    }
+
+    //3) listingItem 만들고 create
+
+    const listingItems: Prisma.ListingItemCreateManyInput[] = items.map(
+      (item) => {
+        const { type, cardInfo, accessoryInfo, ...rest } = item;
+        return {
+          ...rest,
+          listingId,
+        };
+      },
+    );
+    const createMany = await tx.listingItem.createMany({
+      data: listingItems,
+    });
   }
 
   /**

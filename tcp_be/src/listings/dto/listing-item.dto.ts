@@ -37,6 +37,13 @@ export class CreateListingItemDto {
   // 🔹 type이 CARD일 때만 채우는 필드
 
   @ApiPropertyOptional({
+    description: '이미 존재하는 item을 참조햇을 때',
+    type: 'number',
+  })
+  @IsInt()
+  infoId?: number;
+
+  @ApiPropertyOptional({
     description: '카드라면 card정보',
   })
   // 🔹 type이 CARD일 때만 채우는 필드
