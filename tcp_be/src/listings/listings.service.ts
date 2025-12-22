@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../database/prisma.service';
 import { CreateListingDto } from './dto/listing.dto';
 import { ListingItemsService } from './listings-items.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ListingsService {
@@ -83,18 +84,62 @@ export class ListingsService {
 
   async findOne(id: number) {
     const listing = await this.prisma.listing.findUnique({
+      ...this.listingDetailQuery,
       where: { id },
-      include: {
-        images: {
-          orderBy: { order: 'asc' },
-          include: {
-            items: true,
-          },
-        },
-      },
     });
 
     if (!listing) throw new NotFoundException('Listing not found');
     return listing;
   }
+
+  listingDetailQuery = Prisma.validator<Prisma.ListingFindUniqueArgs>()({
+    where: { id: 0 },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      sellerId: true,
+      images: {
+        orderBy: { order: 'asc' },
+        select: {
+          id: true,
+          listingId: true,
+          imageUrl: true,
+          order: true,
+          items: {
+            select: {
+              id: true,
+              listingId: true,
+              listingImageId: true,
+              infoId: true,
+              detail: true,
+              condition: true,
+              quantity: true,
+              pricePerUnit: true,
+              createdAt: true,
+              updatedAt: true,
+              itemInfo: {
+                select: {
+                  id: true,
+                  type: true,
+                  cardInfo: {
+                    select: {
+                      itemInfoId: true,
+                      cardCode: true,
+                      nation: true,
+                      rarity: true,
+                      cardName: { select: { id: true, name: true } },
+                      candidate: { select: { id: true, name: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
 }

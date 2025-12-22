@@ -6,14 +6,16 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ItemsService } from './items.service';
 import {
   CreateCardInfoDto,
   CreateAccessoryInfoDto,
   ItemInfoResponseDto,
+  CardInfoResponseDto,
 } from 'src/items/dto/items-info.dto';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiQuery, ApiResponse } from '@nestjs/swagger';
 
 @Controller('items')
 export class ItemsController {
@@ -53,5 +55,20 @@ export class ItemsController {
   @Get('info/:id')
   findItemInfo(@Param('id', ParseIntPipe) id: number) {
     return this.itemsService.findItemInfo(id);
+  }
+
+  @ApiQuery({
+    name: 'nameQuery',
+    required: true,
+    type: String,
+    description: '검색할 카드 이름',
+  })
+  @ApiResponse({
+    type: CardInfoResponseDto,
+    isArray: true,
+  })
+  @Get('info')
+  searchItem(@Query('nameQuery') nameQuery: string) {
+    return this.itemsService.searchItemInfo(nameQuery);
   }
 }

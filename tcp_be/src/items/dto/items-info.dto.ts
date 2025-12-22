@@ -70,6 +70,10 @@ export class ItemInfoResponseDto {
 
   @IsEnum(ListingItemType)
   type: ListingItemType;
+
+  cardInfo?: CardInfoResponseDto;
+
+  accessoryInfo?: AccessoryInfoResponseDto;
 }
 
 export class CardInfoResponseDto {
@@ -103,4 +107,16 @@ export class AccessoryInfoResponseDto {
 
   @IsString()
   name: string;
+}
+
+export class SearchQueryDto {
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional()
+  nameQuery: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional()
+  codeQuery: string;
 }
