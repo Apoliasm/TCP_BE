@@ -40,6 +40,7 @@ export class CreateListingItemDto {
     description: '이미 존재하는 item을 참조햇을 때',
     type: 'number',
   })
+  @IsOptional()
   @IsInt()
   infoId?: number;
 
