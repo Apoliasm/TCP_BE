@@ -24,16 +24,15 @@ export class ItemsService {
       // 1) 카드인 경우
       if ('cardCode' in dto) {
         // 1-1. 기존 CardInfo 있는지 확인 (cardCode는 @unique)
-        const existingCardInfo = await tx.cardInfo.findUnique({
-          where: { cardCode: dto.cardCode, rarity: dto.rarity },
-          include: { itemInfo: true },
+        const existingCardInfo = await tx.itemInfo.findFirst({
+          where: {
+            cardInfo: {
+              cardCode: dto.cardCode,
+              rarity: dto.rarity,
+            },
+          },
         });
-
-        if (existingCardInfo) {
-          // 이미 있는 CardInfo + ItemInfo 재사용
-          return existingCardInfo.itemInfo;
-        }
-
+        if (existingCardInfo) return existingCardInfo;
         // 2. ItemInfo 먼저 생성
         const itemInfo = await tx.itemInfo.create({
           data: {
@@ -57,7 +56,7 @@ export class ItemsService {
       }
 
       // 2) 악세서리인 경우 ('name' 속성이 있는 DTO라고 가정)
-      if ('name' in dto) {
+      else if ('name' in dto) {
         // 1-1. 기존 AccessoryInfo 있는지 확인
         const existingAccessoryInfo = await tx.accessoryInfo.findFirst({
           where: { name: dto.name },
