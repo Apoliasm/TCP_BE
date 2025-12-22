@@ -5,9 +5,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateListingDto } from './dto/listing.dto';
+import { CreateListingDto, ListingSummaryResponseDto } from './dto/listing.dto';
 import { ListingItemsService } from './listings-items.service';
 import { Prisma } from '@prisma/client';
+import { error } from 'console';
 
 @Injectable()
 export class ListingsService {
@@ -70,16 +71,32 @@ export class ListingsService {
     });
   }
 
-  findAll() {
-    return this.prisma.listing.findMany({
-      include: {
-        items: {
-          select: { id: true },
+  async findAll() {
+    try {
+      const findMany = await this.prisma.listing.findMany({
+        include: {
+          seller: true,
+          images: true,
         },
-        seller: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const summary: ListingSummaryResponseDto[] = findMany.map((item) => {
+        const { images, seller, ...rest } = item;
+        return {
+          ...rest,
+          sellerId: seller.id,
+          sellerNickName: seller.nickname,
+          thumbnailURL: images[0]?.imageUrl ?? '',
+        };
+      });
+
+      console.log(summary);
+
+      return summary;
+    } catch (error) {
+      throw Error(error);
+    }
   }
 
   async findOne(id: number) {

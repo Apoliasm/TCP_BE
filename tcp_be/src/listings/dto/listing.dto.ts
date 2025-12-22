@@ -92,21 +92,27 @@ export class ListingResponseDto {
 }
 
 export class ListingSummaryResponseDto {
-  @ApiProperty()
+  @ApiProperty({ type: 'number' })
   id: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: 'string' })
   title: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: 'number' })
   sellerId: number;
+
+  @ApiProperty({ type: 'string' })
+  sellerNickName: string;
 
   @ApiProperty({ enum: ListingStatus })
   status: ListingStatus;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date })
   createdAt: Date;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date })
   updatedAt: Date;
+
+  @ApiProperty({ type: 'string' })
+  thumbnailURL: string;
 }
