@@ -8,12 +8,19 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ListingStatus } from '@prisma/client';
+import { ListingItemType, ListingStatus } from '@prisma/client';
 import {
+  CreateListingItemAccessory,
+  CreateListingItemCard,
+  CreateListingItemCommon,
   CreateListingItemDto,
   ListingItemResponseDto,
 } from 'src/listings/dto/listing-item.dto';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { ListingImageResponseDto } from './listing-image.dto';
 export class CreateListingDto {
   @ApiProperty({
@@ -42,12 +49,24 @@ export class CreateListingDto {
 
   @IsOptional()
   @ApiProperty({
-    type: [CreateListingItemDto],
     description: '판매 품목들',
+    oneOf: [
+      { $ref: getSchemaPath(CreateListingItemCard) },
+      { $ref: getSchemaPath(CreateListingItemAccessory) },
+    ],
+    isArray: true,
   })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateListingItemDto)
+  @Type(() => CreateListingItemCommon, {
+    discriminator: {
+      property: 'type',
+      subTypes: [
+        { name: ListingItemType.CARD, value: CreateListingItemCard },
+        { name: ListingItemType.ACCESSORY, value: CreateListingItemAccessory },
+      ],
+    },
+  })
   items: CreateListingItemDto[];
 
   @IsOptional()

@@ -31,12 +31,13 @@ export class CreateCardInfoDto {
   @Type(() => CreateCardCandidatesDto)
   candidateInfo?: CreateCardCandidatesDto;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '카드 번호',
     example: 'DUAD-KR049',
   })
+  @IsOptional()
   @IsString()
-  cardCode: string;
+  cardCode?: string;
 
   @ApiProperty({
     description: '카드 국가 정보 (enum: KR / JP / EN)',

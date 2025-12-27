@@ -34,7 +34,7 @@ export class ListingsService {
       });
 
       // 2) listingItem 생성 (같은 트랜잭션 tx로)
-      await this.listingItem.createListingItemTx(tx, listing.id, dto.items);
+      await this.listingItem.createListingItem(listing.id, dto.items, tx);
 
       // 3) 업로드된 이미지 일괄 연결 (updateMany 1번)
       const imageIds = (dto.images ?? []).map((img) => img.id).filter(Boolean);
