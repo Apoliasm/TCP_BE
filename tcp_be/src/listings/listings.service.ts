@@ -5,8 +5,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateListingDto } from './dto/listing.dto';
+import { CreateListingDto, ListingSummaryResponseDto } from './dto/listing.dto';
 import { ListingItemsService } from './listings-items.service';
+import { Prisma } from '@prisma/client';
+import { error } from 'console';
 
 @Injectable()
 export class ListingsService {
@@ -32,7 +34,7 @@ export class ListingsService {
       });
 
       // 2) listingItem 생성 (같은 트랜잭션 tx로)
-      await this.listingItem.createListingItemTx(tx, listing.id, dto.items);
+      await this.listingItem.createListingItem(listing.id, dto.items, tx);
 
       // 3) 업로드된 이미지 일괄 연결 (updateMany 1번)
       const imageIds = (dto.images ?? []).map((img) => img.id).filter(Boolean);
@@ -69,32 +71,92 @@ export class ListingsService {
     });
   }
 
-  findAll() {
-    return this.prisma.listing.findMany({
-      include: {
-        items: {
-          select: { id: true },
+  async findAll() {
+    try {
+      const findMany = await this.prisma.listing.findMany({
+        include: {
+          seller: true,
+          images: true,
         },
-        seller: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const summary: ListingSummaryResponseDto[] = findMany.map((item) => {
+        const { images, seller, ...rest } = item;
+        return {
+          ...rest,
+          sellerId: seller.id,
+          sellerNickName: seller.nickname,
+          thumbnailURL: images[0]?.imageUrl ?? '',
+        };
+      });
+
+      console.log(summary);
+
+      return summary;
+    } catch (error) {
+      throw Error(error);
+    }
   }
 
   async findOne(id: number) {
     const listing = await this.prisma.listing.findUnique({
+      ...this.listingDetailQuery,
       where: { id },
-      include: {
-        images: {
-          orderBy: { order: 'asc' },
-          include: {
-            items: true,
-          },
-        },
-      },
     });
 
     if (!listing) throw new NotFoundException('Listing not found');
     return listing;
   }
+
+  listingDetailQuery = Prisma.validator<Prisma.ListingFindUniqueArgs>()({
+    where: { id: 0 },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      sellerId: true,
+      images: {
+        orderBy: { order: 'asc' },
+        select: {
+          id: true,
+          listingId: true,
+          imageUrl: true,
+          order: true,
+          items: {
+            select: {
+              id: true,
+              listingId: true,
+              listingImageId: true,
+              infoId: true,
+              detail: true,
+              condition: true,
+              quantity: true,
+              pricePerUnit: true,
+              createdAt: true,
+              updatedAt: true,
+              itemInfo: {
+                select: {
+                  id: true,
+                  type: true,
+                  cardInfo: {
+                    select: {
+                      itemInfoId: true,
+                      cardCode: true,
+                      nation: true,
+                      rarity: true,
+                      cardName: { select: { id: true, name: true } },
+                      candidate: { select: { id: true, name: true } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
 }

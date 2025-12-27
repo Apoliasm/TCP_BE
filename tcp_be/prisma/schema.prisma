@@ -89,6 +89,8 @@ model AccessoryInfo{
   itemInfoId  Int    @id
   itemInfo    ItemInfo @relation(fields: [itemInfoId], references: [id])
   name String
+
+  @@unique(name)
 }
 
 enum CardNation{
@@ -104,6 +106,8 @@ enum Rarity{
   SR
   UR
   UL
+  SE
+  QCSE
   Prismatic
   UPR
   NPR
@@ -131,10 +135,12 @@ model CardInfo{
   cardName CardName? @relation(fields : [cardNameId], references : [id])
   candidateId Int?
   candidate CardCandidates? @relation(fields: [candidateId], references: [id])
-  cardCode String 
+  cardCode String? 
   nation CardNation
   rarity Rarity 
-  @@unique([cardCode, rarity])
+  // 둘 중 어느 쪽을 쓰든 rarity와 함께 유일해야 함
+  @@unique([cardNameId, rarity])
+  @@unique([candidateId, rarity])
 
 }
 

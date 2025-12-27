@@ -110,4 +110,53 @@ export class ItemsService {
 
     return itemInfo;
   }
+
+  async searchItemInfo(nameQuery: string) {
+    const searchResults = await this.prisma.itemInfo.findMany({
+      where: {
+        OR: [
+          {
+            cardInfo: {
+              cardName: {
+                name: {
+                  contains: nameQuery,
+                  mode: 'insensitive',
+                },
+              },
+            },
+          },
+          {
+            cardInfo: {
+              candidate: {
+                name: {
+                  contains: nameQuery,
+                  mode: 'insensitive',
+                },
+              },
+            },
+          },
+          {
+            accessoryInfo: {
+              name: {
+                contains: nameQuery,
+                mode: 'insensitive',
+              },
+            },
+          },
+        ],
+      },
+
+      include: {
+        cardInfo: {
+          include: {
+            candidate: true,
+            cardName: true,
+          },
+        },
+        accessoryInfo: true,
+      },
+    });
+
+    return searchResults;
+  }
 }

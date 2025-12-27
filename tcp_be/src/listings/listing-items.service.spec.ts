@@ -1,33 +1,32 @@
 import { BadRequestException } from '@nestjs/common';
 import { ListingItemsService } from './listings-items.service';
-import { ListingItemType, Prisma } from '@prisma/client';
+import { ListingItemType } from '@prisma/client';
 
-describe('ListingItemsService.createListingItemTx (unit)', () => {
+describe('ListingItemsService.createListingItem (unit)', () => {
   let service: ListingItemsService;
 
-  const prismaMock = {}; // createListingItemTx는 prisma를 직접 안 씀
-  const itemsServiceMock = {}; // createListingItemTx는 itemsService를 직접 안 씀
+  const prismaMock = {}; // createListingItem에서 tx를 넘기면 prisma 안 씀
+  const itemsServiceMock = {};
 
   beforeEach(() => {
+    jest.clearAllMocks();
     service = new ListingItemsService(
       prismaMock as any,
       itemsServiceMock as any,
     );
-    jest.clearAllMocks();
   });
 
   it('items가 없으면 BadRequestException', async () => {
-    const tx = {} as Prisma.TransactionClient;
-
-    await expect(service.createListingItemTx(tx, 1, [])).rejects.toBeInstanceOf(
+    const tx = {} as any;
+    await expect(service.createListingItem(1, [], tx)).rejects.toBeInstanceOf(
       BadRequestException,
     );
   });
 
-  it('CARD + candidateName + infoId null이면 upsert -> itemInfo.create -> infoId 매핑 -> createMany', async () => {
+  it('CARD: 기존 cardInfo가 없으면(cardInfo.findUnique -> null) itemInfo.create -> createMany', async () => {
     const tx: any = {
-      cardCandidates: {
-        upsert: jest.fn().mockResolvedValue({ id: 777 }),
+      cardInfo: {
+        findUnique: jest.fn().mockResolvedValue(null), // ✅ 없다고 가정
       },
       itemInfo: {
         create: jest.fn().mockResolvedValue({ id: 888 }),
@@ -40,14 +39,11 @@ describe('ListingItemsService.createListingItemTx (unit)', () => {
     const items: any[] = [
       {
         type: ListingItemType.CARD,
-        infoId: null,
         cardInfo: {
-          cardNameId: 1,
-          candidateId: null,
-          candidateInfo: { name: '섬도희-제로' },
-          cardCode: 'DUAD-KR049',
-          nation: 'KR',
+          // ✅ findUniqueItem은 candidateId/cardNameId를 본다
+          candidateId: 777,
           rarity: 'UL',
+          nation: 'KR',
         },
         detail: 'd',
         condition: 'c',
@@ -57,42 +53,34 @@ describe('ListingItemsService.createListingItemTx (unit)', () => {
       },
     ];
 
-    await service.createListingItemTx(tx, 123, items as any);
+    await service.createListingItem(123, items as any, tx);
 
-    expect(tx.cardCandidates.upsert).toHaveBeenCalledWith({
-      where: { name: '섬도희-제로' },
-      create: { name: '섬도희-제로' },
-      update: {},
-      select: { id: true },
-    });
-
-    // itemInfo.create에 candidateId=777로 들어갔는지
-    expect(tx.itemInfo.create).toHaveBeenCalledWith({
-      data: {
-        type: ListingItemType.CARD,
-        cardInfo: {
-          create: {
-            ...items[0].cardInfo,
-            candidateId: 777,
-          },
+    // ✅ 먼저 unique 조회
+    expect(tx.cardInfo.findUnique).toHaveBeenCalledWith({
+      where: {
+        candidateId_rarity: {
+          candidateId: 777,
+          rarity: 'UL',
         },
       },
-      select: { id: true },
     });
 
-    // infoId 매핑이 되었는지
-    expect(items[0].infoId).toBe(888);
+    // ✅ 없으니 itemInfo.create 호출
+    expect(tx.itemInfo.create).toHaveBeenCalledTimes(1);
 
-    // createMany 데이터에 listingId가 붙어서 들어갔는지
+    // ✅ 최종 createMany 호출
     expect(tx.listingItem.createMany).toHaveBeenCalledTimes(1);
     const arg = tx.listingItem.createMany.mock.calls[0][0];
+
     expect(arg.data[0].listingId).toBe(123);
     expect(arg.data[0].infoId).toBe(888);
   });
 
-  it('ACCESSORY + infoId null이면 itemInfo.create -> infoId 매핑', async () => {
+  it('ACCESSORY: 기존 accessoryInfo가 없으면(findUnique -> null) itemInfo.create -> createMany', async () => {
     const tx: any = {
-      cardCandidates: { upsert: jest.fn() },
+      accessoryInfo: {
+        findUnique: jest.fn().mockResolvedValue(null),
+      },
       itemInfo: {
         create: jest.fn().mockResolvedValue({ id: 500 }),
       },
@@ -104,7 +92,6 @@ describe('ListingItemsService.createListingItemTx (unit)', () => {
     const items: any[] = [
       {
         type: ListingItemType.ACCESSORY,
-        infoId: null,
         accessoryInfo: { name: '플레이매트' },
         detail: 'd',
         condition: 'c',
@@ -113,17 +100,27 @@ describe('ListingItemsService.createListingItemTx (unit)', () => {
       },
     ];
 
-    await service.createListingItemTx(tx, 123, items as any);
+    await service.createListingItem(123, items as any, tx);
 
-    expect(tx.cardCandidates.upsert).not.toHaveBeenCalled();
-    expect(tx.itemInfo.create).toHaveBeenCalled();
-    expect(items[0].infoId).toBe(500);
+    expect(tx.accessoryInfo.findUnique).toHaveBeenCalledWith({
+      where: { name: '플레이매트' },
+    });
+
+    expect(tx.itemInfo.create).toHaveBeenCalledTimes(1);
+
+    const arg = tx.listingItem.createMany.mock.calls[0][0];
+    expect(arg.data[0].listingId).toBe(123);
+    expect(arg.data[0].infoId).toBe(500);
   });
 
-  it('이미 infoId가 있는 item은 upsert/itemInfo.create를 타지 않는다', async () => {
+  it('CARD: 기존 cardInfo가 있으면(cardInfo.findUnique -> {itemInfoId}) itemInfo.create를 타지 않고 그 id를 재사용', async () => {
     const tx: any = {
-      cardCandidates: { upsert: jest.fn() },
-      itemInfo: { create: jest.fn() },
+      cardInfo: {
+        findUnique: jest.fn().mockResolvedValue({ itemInfoId: 999 }),
+      },
+      itemInfo: {
+        create: jest.fn(),
+      },
       listingItem: {
         createMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
@@ -132,8 +129,11 @@ describe('ListingItemsService.createListingItemTx (unit)', () => {
     const items: any[] = [
       {
         type: ListingItemType.CARD,
-        infoId: 999,
-        cardInfo: { candidateInfo: { name: 'X' } },
+        cardInfo: {
+          candidateId: 777,
+          rarity: 'UL',
+          nation: 'KR',
+        },
         detail: 'd',
         condition: 'c',
         quantity: 1,
@@ -141,10 +141,13 @@ describe('ListingItemsService.createListingItemTx (unit)', () => {
       },
     ];
 
-    await service.createListingItemTx(tx, 123, items as any);
+    await service.createListingItem(123, items as any, tx);
 
-    expect(tx.cardCandidates.upsert).not.toHaveBeenCalled();
+    expect(tx.cardInfo.findUnique).toHaveBeenCalledTimes(1);
     expect(tx.itemInfo.create).not.toHaveBeenCalled();
-    expect(tx.listingItem.createMany).toHaveBeenCalledTimes(1);
+
+    const arg = tx.listingItem.createMany.mock.calls[0][0];
+    expect(arg.data[0].listingId).toBe(123);
+    expect(arg.data[0].infoId).toBe(999);
   });
 });

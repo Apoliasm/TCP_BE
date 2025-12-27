@@ -31,12 +31,13 @@ export class CreateCardInfoDto {
   @Type(() => CreateCardCandidatesDto)
   candidateInfo?: CreateCardCandidatesDto;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '카드 번호',
     example: 'DUAD-KR049',
   })
+  @IsOptional()
   @IsString()
-  cardCode: string;
+  cardCode?: string;
 
   @ApiProperty({
     description: '카드 국가 정보 (enum: KR / JP / EN)',
@@ -70,6 +71,10 @@ export class ItemInfoResponseDto {
 
   @IsEnum(ListingItemType)
   type: ListingItemType;
+
+  cardInfo?: CardInfoResponseDto;
+
+  accessoryInfo?: AccessoryInfoResponseDto;
 }
 
 export class CardInfoResponseDto {
@@ -103,4 +108,16 @@ export class AccessoryInfoResponseDto {
 
   @IsString()
   name: string;
+}
+
+export class SearchQueryDto {
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional()
+  nameQuery: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional()
+  codeQuery: string;
 }

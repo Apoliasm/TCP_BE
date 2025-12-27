@@ -21,14 +21,14 @@ describe('ListingsService (unit)', () => {
     $transaction: jest.fn(),
   };
 
+  // ✅ 실제 메서드명 createListingItem 로 mock 해야 함
   const listingItemsMock = {
-    createListingItemTx: jest.fn(),
+    createListingItem: jest.fn(),
   };
 
   beforeEach(async () => {
     jest.clearAllMocks();
 
-    // $transaction 콜백을 실행해 주도록 mock
     prismaMock.$transaction.mockImplementation(async (cb: any) => cb(txMock));
 
     const moduleRef = await Test.createTestingModule({
@@ -44,7 +44,7 @@ describe('ListingsService (unit)', () => {
     txMock.listing.create.mockResolvedValue({ id: 123 });
     txMock.listing.findUnique.mockResolvedValue({ id: 123, ok: true });
     txMock.listingImage.updateMany.mockResolvedValue({ count: 2 });
-    listingItemsMock.createListingItemTx.mockResolvedValue(undefined);
+    listingItemsMock.createListingItem.mockResolvedValue({ count: 1 });
   });
 
   it('items가 없으면 BadRequestException', async () => {
@@ -58,7 +58,7 @@ describe('ListingsService (unit)', () => {
       title: '게시글 제목',
       sellerId: 1,
       status: 'ON_SALE',
-      items: [{ type: 'CARD', infoId: null, detail: 'd' }],
+      items: [{ type: 'CARD', detail: 'd' }],
       images: [
         { id: 10, order: 0 },
         { id: 0, order: 1 },
@@ -75,13 +75,13 @@ describe('ListingsService (unit)', () => {
       select: { id: true },
     });
 
-    expect(listingItemsMock.createListingItemTx).toHaveBeenCalledWith(
-      txMock,
+    // ✅ 현재 로직 시그니처: (listingId, items, tx)
+    expect(listingItemsMock.createListingItem).toHaveBeenCalledWith(
       123,
       dto.items,
+      txMock,
     );
 
-    // id가 truthy인 것만 들어가야 함: [10,20]
     expect(txMock.listingImage.updateMany).toHaveBeenCalledWith({
       where: { id: { in: [10, 20] }, listingId: null },
       data: { listingId: 123 },
@@ -96,7 +96,7 @@ describe('ListingsService (unit)', () => {
       title: 't',
       sellerId: 1,
       status: 'ON_SALE',
-      items: [{ type: 'CARD', infoId: null }],
+      items: [{ type: 'CARD', detail: 'd' }],
       images: [],
     };
 
