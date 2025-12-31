@@ -66,14 +66,12 @@ export class ListingImagesController {
     @UploadedFile() file: Express.Multer.File,
     @Body() body: CreateListingImageDto,
   ): Promise<ListingImageResponseDto> {
-    const imageUrl = `/uploads/${file.filename}`; // 정적 서빙 기준 경로
+    const url = `/uploads/${file.filename}`; // 정적 서빙 기준 경로
 
-    return this.listingImagesService.create(
-      {
-        order: body.order,
-      },
-      imageUrl,
-    );
+    return this.listingImagesService.create({
+      ...body,
+      url,
+    });
   }
 
   @Get(':id')
@@ -87,13 +85,5 @@ export class ListingImagesController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<ListingImageResponseDto> {
     return this.listingImagesService.getById(id);
-  }
-
-  @Get('listing/:listingId')
-  @ApiOkResponse({ type: [ListingImageResponseDto] })
-  async findByListing(
-    @Param('listingId', ParseIntPipe) listingId: number,
-  ): Promise<ListingImageResponseDto[]> {
-    return this.listingImagesService.findByListing(listingId);
   }
 }
