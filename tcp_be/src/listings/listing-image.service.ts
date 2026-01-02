@@ -10,33 +10,17 @@ import {
 export class ListingImagesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    dto: CreateListingImageDto,
-    imageUrl: string,
-  ): Promise<ListingImageResponseDto> {
+  async create(dto: CreateListingImageDto) {
     const image = await this.prisma.listingImage.create({
       data: {
-        imageUrl: imageUrl,
-        order: dto.order ?? null,
+        ...dto,
       },
-      include: {
-        items: true,
-      },
-    });
-
-    return image as unknown as ListingImageResponseDto;
-  }
-
-  async findByListing(listingId: number): Promise<ListingImageResponseDto[]> {
-    const images = await this.prisma.listingImage.findMany({
-      where: { listingId },
-      orderBy: { order: 'asc' },
-      include: {
-        items: true,
+      select: {
+        id: true,
       },
     });
 
-    return images as unknown as ListingImageResponseDto[];
+    return image as ListingImageResponseDto;
   }
 
   async getById(id: number): Promise<ListingImageResponseDto> {

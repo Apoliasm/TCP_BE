@@ -1,29 +1,23 @@
-// listing-images/dto/listing-image-response.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional } from 'class-validator';
-import { ListingItemResponseDto } from './listing-item.dto';
 import { Type } from 'class-transformer';
-export class ListingImageResponseDto {
-  @IsInt()
-  @ApiProperty()
-  id: number;
+import { IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
-  @IsOptional()
+export class UploadImageDto {
+  @Type(() => Number)
+  @ApiPropertyOptional({ description: '이미지 정렬 순서 (대표=0)' })
   @IsInt()
-  @ApiPropertyOptional()
-  order?: number;
+  @Min(0)
+  order: number;
+}
+export class CreateListingImageDto extends UploadImageDto {
+  @ApiProperty({ description: '이미지 URL' })
+  @IsString()
+  url: string;
 }
 
-export class CreateListingImageDto {
-  @IsOptional()
-  @ApiPropertyOptional()
-  @IsInt()
+export class ListingImageResponseDto extends UploadImageDto {
   @Type(() => Number)
-  listingId?: number;
-
-  @IsOptional()
-  @ApiPropertyOptional()
   @IsInt()
-  @Type(() => Number)
-  order?: number;
+  @ApiProperty({ description: '이미지 id' })
+  id: number;
 }

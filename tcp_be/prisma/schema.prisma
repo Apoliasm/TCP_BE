@@ -1,152 +1,85 @@
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id        Int       @id @default(autoincrement())
-  nickname  String    @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  listings  Listing[]
-}
-
-model Listing {
-  id        Int       @id @default(autoincrement())
-  title     String
-  items     ListingItem[]
-  images    ListingImage[]
-  status    ListingStatus @default(ON_SALE)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  sellerId  Int
-  seller    User      @relation(fields: [sellerId], references: [id])
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum ListingStatus {
   ON_SALE
   RESERVED
   SOLD
-  DRAFT
+  DELETED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  userId    String   @unique // 로그인용 아이디(문자열)
+  nickname  String   @unique
+  password  String   // 해시 저장 권장
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listings  Listing[]
+
+  @@index([createdAt])
+}
+
+model Listing {
+  id        Int          @id @default(autoincrement())
+  userId    Int
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title     String
+  memo      String?      // DC식 몇 줄 본문
+  status    ListingStatus @default(ON_SALE)
+
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  images    ListingImage[]
+  items     Item[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
 }
 
 model ListingImage {
-  id        Int       @id @default(autoincrement())
-  listingId Int?
-  listing   Listing?   @relation(fields: [listingId], references: [id])
-
-  imageUrl  String
-  order     Int?      // 정렬용
-
-  items     ListingItem[]
-}
-
-
-enum ListingItemType {
-  CARD
-  ACCESSORY
-  OTHER
-}
-
-model ItemInfo{
-  id Int @id @default(autoincrement())
-  type ListingItemType
-  listingItems  ListingItem[]
-
-  cardInfo CardInfo?
-  accessoryInfo AccessoryInfo?
-}
-
-model ListingItem {
-  id           Int             @id @default(autoincrement())
-  listingId    Int
-  listing      Listing         @relation(fields: [listingId], references: [id])
-
-  // 이 아이템이 어떤 사진 아래에 표시될지 (없으면 null)
-  listingImageId Int?
-  listingImage   ListingImage? @relation(fields: [listingImageId], references: [id])
-
-  infoId   Int?
-  itemInfo     ItemInfo?  @relation(fields:[infoId] ,references:[id])
-  detail       String?
-  condition    String?
-  quantity     Int
-  pricePerUnit Int
-
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-}
-
-
-
-model AccessoryInfo{
-  itemInfoId  Int    @id
-  itemInfo    ItemInfo @relation(fields: [itemInfoId], references: [id])
-  name String
-
-  @@unique(name)
-}
-
-enum CardNation{
-  KR
-  JP
-  EN
-  Other
-}
-
-enum Rarity{
-  N
-  R
-  SR
-  UR
-  UL
-  SE
-  QCSE
-  Prismatic
-  UPR
-  NPR
-  Other
-}
-
-model CardName{
-  id   Int     @id @default(autoincrement())
-  name String   @unique
-  cardInfos CardInfo[]
-  passcode String? 
-}
-
-model CardCandidates {
-  id Int @id @default(autoincrement())
-  name String @unique
-  CardInfos CardInfo[]
-}
-
-model CardInfo{
-  itemInfoId Int @id
-  itemInfo   ItemInfo @relation(fields: [itemInfoId], references: [id])
-  
-  cardNameId Int?
-  cardName CardName? @relation(fields : [cardNameId], references : [id])
-  candidateId Int?
-  candidate CardCandidates? @relation(fields: [candidateId], references: [id])
-  cardCode String? 
-  nation CardNation
-  rarity Rarity 
-  // 둘 중 어느 쪽을 쓰든 rarity와 함께 유일해야 함
-  @@unique([cardNameId, rarity])
-  @@unique([candidateId, rarity])
-
-}
-
-model SyncMeta {
   id        Int      @id @default(autoincrement())
-  key       String   @unique
-  value     String
-  updatedAt DateTime @updatedAt
+  listingId Int?
+  listing   Listing?  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  url       String
+  order     Int      @default(0) // 대표=0, 그 다음 1,2...
+  createdAt DateTime @default(now())
+
+  items     Item[]   // 이 이미지에 매핑된 아이템들
+
+  @@unique([listingId, order])
+  @@index([listingId])
+}
+
+model Item {
+  id             Int          @id @default(autoincrement())
+  listingId      Int
+  listing        Listing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  listingImageId Int?
+  listingImage   ListingImage? @relation(fields: [listingImageId], references: [id], onDelete: SetNull)
+
+  name           String
+  pricePerUnit   Int    // 아이템 개별 가격(선택)
+  unit           Int
+  detailText     String?      // 상태/설명 텍스트(선택)
+  quantity       Int          @default(1)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([listingId])
+  @@index([listingImageId])
 }
