@@ -13,7 +13,7 @@ import { ListingImagesService } from './listing-image.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
-import { CreateListingImageDto } from './dto/listing-image.dto';
+import { CreateListingImageDto, UploadImageDto } from './dto/listing-image.dto';
 import { ListingImageResponseDto } from './dto/listing-image.dto';
 import {
   ApiBody,
@@ -28,6 +28,7 @@ import type { Express } from 'express';
 export class ListingImagesController {
   constructor(private readonly listingImagesService: ListingImagesService) {}
 
+  //useInterceptor로 file인 binary 파일을 빼서 다른 필드값만 body로 남겨줌
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
@@ -64,8 +65,9 @@ export class ListingImagesController {
   @ApiOkResponse({ type: ListingImageResponseDto })
   async uploadImage(
     @UploadedFile() file: Express.Multer.File,
-    @Body() body: CreateListingImageDto,
+    @Body() body: UploadImageDto,
   ): Promise<ListingImageResponseDto> {
+    console.log(body);
     const url = `/uploads/${file.filename}`; // 정적 서빙 기준 경로
 
     return this.listingImagesService.create({
