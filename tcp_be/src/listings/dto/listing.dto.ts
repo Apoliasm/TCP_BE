@@ -73,10 +73,10 @@ export class ListingSummaryResponseDto {
   title: string;
 
   @ApiProperty({ type: 'number' })
-  sellerId: number;
+  userId: number;
 
   @ApiProperty({ type: 'string' })
-  sellerNickName: string;
+  useNickName: string;
 
   @ApiProperty({ enum: ListingStatus })
   status: ListingStatus;

@@ -49,7 +49,7 @@ describe('POST /listings (e2e)', () => {
       .post('/listings')
       .send({
         title: 't',
-        sellerId: 1,
+        userId: 1,
         status: 'ON_SALE',
         items: [],
       })
@@ -69,7 +69,7 @@ describe('POST /listings (e2e)', () => {
       .post('/listings')
       .send({
         title: '카드 판매글',
-        sellerId: seller.id,
+        userId: seller.id,
         status: 'ON_SALE',
         items: [
           {
@@ -127,7 +127,7 @@ describe('POST /listings (e2e)', () => {
       .post('/listings')
       .send({
         title: '악세 판매글',
-        sellerId: seller.id,
+        userId: seller.id,
         status: 'ON_SALE',
         items: [
           {
@@ -174,7 +174,7 @@ describe('POST /listings (e2e)', () => {
       .post('/listings')
       .send({
         title: '기존 infoId 사용',
-        sellerId: seller.id,
+        userId: seller.id,
         status: 'ON_SALE',
         items: [
           {
@@ -219,7 +219,7 @@ describe('POST /listings (e2e)', () => {
       .post('/listings')
       .send({
         title: '이미지 연결',
-        sellerId: seller.id,
+        userId: seller.id,
         status: 'ON_SALE',
         items: [
           {

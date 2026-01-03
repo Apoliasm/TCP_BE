@@ -23,7 +23,7 @@ export class ListingsController {
   })
   @Post()
   create(@Body() dto: CreateListingDto) {
-    // sellerId는 일단 dto로 받고, 나중에는 JWT에서 가져오게 변경하면 됨
+    // userId는 일단 dto로 받고, 나중에는 JWT에서 가져오게 변경하면 됨
     return this.listingsService.create(dto);
   }
 

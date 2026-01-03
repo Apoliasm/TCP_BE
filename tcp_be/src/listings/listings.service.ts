@@ -80,8 +80,8 @@ export class ListingsService {
         const { images, user, ...rest } = item;
         return {
           ...rest,
-          sellerId: user.id,
-          sellerNickName: user.nickname,
+          userId: user.id,
+          useNickName: user.nickname,
           thumbnailURL: images[0]?.url ?? '',
         };
       });
