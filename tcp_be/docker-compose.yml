@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: tcp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tcp_be
+      POSTGRES_USER: tcp
+      POSTGRES_PASSWORD: tcp_pw
+    volumes:
+      - tcp-db-data:/var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:5432:5432'
+
+  backend:
+    build:
+      context: .
+    container_name: tcp-backend
+    #    restart: unless-stopped
+    depends_on:
+      - db
+    env_file:
+      - .env.production
+    ports:
+      - '127.0.0.1:4000:3000'
+
+volumes:
+  tcp-db-data:
