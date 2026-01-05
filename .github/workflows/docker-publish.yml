@@ -33,3 +33,22 @@ jobs:
           tags: ghcr.io/apoliasm/tcp-be:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy-to-ec2:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }} # 보통 ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }} # private key
+          debug: true
+          script: |
+            set -e
+            cd /home/ubuntu/deploy-tcp   # EC2에 있는 compose 디렉토리로
+            echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin 
+            docker compose pull backend
+            docker compose up -d
+            docker image prune -f
