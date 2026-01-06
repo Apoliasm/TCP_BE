@@ -1,4 +1,9 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  PartialType,
+  PickType,
+} from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -9,7 +14,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ListingStatus } from '@prisma/client';
-import { CreateItemDto } from './listing-item.dto';
+import { CreateItemDto, ItemResponseDto } from './listing-item.dto';
 import {
   CreateListingImageDto,
   ListingImageResponseDto,
@@ -89,6 +94,9 @@ export class ListingSummaryResponseDto {
 
   @ApiProperty({ type: 'string' })
   thumbnailURL: string;
+
+  @ApiProperty({ type: [PickType(ItemResponseDto, ['name', 'id'])] })
+  items: Pick<ItemResponseDto, 'name' | 'id'>[];
 }
 
 export class ListingResponseDto extends CreateListingDto {}

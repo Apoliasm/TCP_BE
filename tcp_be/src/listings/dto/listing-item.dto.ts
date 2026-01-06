@@ -52,4 +52,9 @@ export class CreateItemDto {
   quantity?: number = 1;
 }
 
-export class ItemResponseDto extends CreateItemDto {}
+export class ItemResponseDto extends CreateItemDto {
+  @ApiProperty({
+    type: 'number',
+  })
+  id: number;
+}

@@ -72,6 +72,12 @@ export class ListingsService {
         include: {
           images: true,
           user: true,
+          items: {
+            select: {
+              name: true,
+              id: true,
+            },
+          },
         },
         orderBy: { createdAt: 'desc' },
       });
