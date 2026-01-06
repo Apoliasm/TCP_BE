@@ -20,7 +20,7 @@ import {
   ListingImageResponseDto,
 } from './listing-image.dto';
 
-export class CreateListingDto {
+export class ListingDto {
   @ApiProperty({ description: '판매자(User) id', example: 1 })
   @IsInt()
   userId: number;
@@ -36,9 +36,8 @@ export class CreateListingDto {
     description: '본문(대충 몇 줄)',
     example: '직거래 선호 / 네고X',
   })
-  @IsOptional()
   @IsString()
-  memo?: string;
+  memo: string | null;
 
   @ApiPropertyOptional({
     description: '판매 상태',
@@ -58,7 +57,8 @@ export class CreateListingDto {
   @ValidateNested({ each: true })
   @Type(() => ListingImageResponseDto)
   images?: ListingImageResponseDto[];
-
+}
+export class CreateListingDto extends ListingDto {
   @ApiPropertyOptional({
     description: '아이템 목록(선택)',
     type: [CreateItemDto],
@@ -70,21 +70,12 @@ export class CreateListingDto {
   items?: CreateItemDto[];
 }
 
-export class ListingSummaryResponseDto {
+export class ListingSummaryResponseDto extends ListingDto {
   @ApiProperty({ type: 'number' })
   id: number;
 
   @ApiProperty({ type: 'string' })
-  title: string;
-
-  @ApiProperty({ type: 'number' })
-  userId: number;
-
-  @ApiProperty({ type: 'string' })
   useNickName: string;
-
-  @ApiProperty({ enum: ListingStatus })
-  status: ListingStatus;
 
   @ApiProperty({ type: Date })
   createdAt: Date;
@@ -99,4 +90,14 @@ export class ListingSummaryResponseDto {
   items: Pick<ItemResponseDto, 'name' | 'id'>[];
 }
 
-export class ListingResponseDto extends CreateListingDto {}
+export class ListingResponseDto extends ListingDto {
+  @ApiPropertyOptional({
+    description: '아이템 목록(선택)',
+    type: [CreateItemDto],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateItemDto)
+  items?: CreateItemDto[];
+}

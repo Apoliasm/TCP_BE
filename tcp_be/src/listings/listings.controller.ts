@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ListingsService } from './listings.service';
 import {
@@ -12,7 +13,8 @@ import {
   ListingResponseDto,
   ListingSummaryResponseDto,
 } from './dto/listing.dto';
-import { ApiBody, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOkResponse, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ItemSearchQuery } from './dto/listing-item.dto';
 
 @Controller('listings')
 export class ListingsController {
@@ -28,18 +30,23 @@ export class ListingsController {
   }
 
   @ApiResponse({
-    type: [ListingSummaryResponseDto],
-  })
-  @Get()
-  findAll() {
-    return this.listingsService.findAll();
-  }
-
-  @ApiResponse({
     type: ListingResponseDto,
   })
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.listingsService.findOne(id);
+  }
+
+  @Get()
+  @ApiQuery({ name: 'query', required: false, description: '검색어' })
+  @ApiResponse({ type: [ListingSummaryResponseDto] })
+  async searchByItemName(
+    @Query() query: ItemSearchQuery,
+  ): Promise<ListingSummaryResponseDto[]> {
+    let keyword = query.query?.trim();
+    if (keyword) {
+      return this.listingsService.findListingIdsByItemName(keyword);
+    }
+    return this.listingsService.findAll();
   }
 }

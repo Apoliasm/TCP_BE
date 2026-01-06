@@ -1,15 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min, MinLength } from 'class-validator';
 
-export class CreateItemDto {
-  @ApiPropertyOptional({
-    description: '이 아이템이 속할 이미지 ID (없으면 기타/미분류)',
-    example: 12,
-  })
-  @IsOptional()
-  @IsInt()
-  listingImageId?: number;
-
+export class ListingItemDto {
   @ApiProperty({ description: '품목명', example: '블루아이즈 시크릿' })
   @IsString()
   name: string;
@@ -52,9 +44,29 @@ export class CreateItemDto {
   quantity?: number = 1;
 }
 
-export class ItemResponseDto extends CreateItemDto {
+export class CreateItemDto extends ListingItemDto {
+  @ApiPropertyOptional({
+    description: '이 아이템이 속할 이미지 ID (없으면 기타/미분류)',
+    example: 12,
+  })
+  @IsOptional()
+  @IsInt()
+  listingImageId?: number;
+}
+
+export class ItemResponseDto extends ListingItemDto {
   @ApiProperty({
     type: 'number',
   })
   id: number;
+}
+
+export class ItemSearchQuery {
+  @ApiProperty({
+    description: '검색할 아이템 이름(부분 검색)',
+    example: '후와로스',
+  })
+  @IsOptional()
+  @IsString()
+  query?: string;
 }

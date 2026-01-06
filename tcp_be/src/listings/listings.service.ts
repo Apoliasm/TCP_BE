@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../database/prisma.service';
 import { CreateListingDto, ListingSummaryResponseDto } from './dto/listing.dto';
 import { ListingItemsService } from './listings-items.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ListingsService {
@@ -67,37 +68,7 @@ export class ListingsService {
   }
 
   async findAll() {
-    try {
-      const findMany = await this.prisma.listing.findMany({
-        include: {
-          images: true,
-          user: true,
-          items: {
-            select: {
-              name: true,
-              id: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      const summary: ListingSummaryResponseDto[] = findMany.map((item) => {
-        const { images, user, ...rest } = item;
-        return {
-          ...rest,
-          userId: user.id,
-          useNickName: user.nickname,
-          thumbnailURL: images[0]?.url ?? '',
-        };
-      });
-
-      console.log(summary);
-
-      return summary;
-    } catch (error) {
-      throw new Error(error);
-    }
+    return this.getListingItemSummary();
   }
 
   async findOne(id: number) {
@@ -122,5 +93,72 @@ export class ListingsService {
 
     if (!listing) throw new NotFoundException('Listing not found');
     return listing;
+  }
+
+  async findListingIdsByItemName(
+    q: string,
+  ): Promise<ListingSummaryResponseDto[]> {
+    const keyword = q.trim();
+    if (!keyword) return [];
+
+    const rows = await this.prisma.item.findMany({
+      where: {
+        name: {
+          contains: keyword,
+          mode: 'insensitive', // 대소문자 무시(가능한 DB/Collation에서 동작)
+        },
+      },
+      select: {
+        listingId: true,
+      },
+      distinct: ['listingId'], // listingId 중복 제거
+      take: 200, // 안전장치(원하면 조절)
+    });
+    const ids = rows.map((row) => row.listingId);
+
+    return this.getListingItemSummary(ids);
+  }
+
+  private async getListingItemSummary(ids?: number[]) {
+    const args = {
+      include: {
+        images: true,
+        user: true,
+        items: {
+          select: {
+            name: true,
+            id: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      ...(ids?.length
+        ? {
+            where: {
+              id: { in: ids },
+            },
+          }
+        : {}),
+    } satisfies Prisma.ListingFindManyArgs;
+
+    try {
+      const findMany = await this.prisma.listing.findMany(args);
+
+      const summary: ListingSummaryResponseDto[] = findMany.map((item) => {
+        const { images, user, ...rest } = item;
+        return {
+          ...rest,
+          userId: user.id,
+          useNickName: user.nickname,
+          thumbnailURL: images[0]?.url ?? '',
+        };
+      });
+
+      console.log(summary);
+
+      return summary;
+    } catch (error) {
+      throw error;
+    }
   }
 }
