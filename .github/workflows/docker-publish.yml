@@ -52,3 +52,6 @@ jobs:
             docker compose pull backend
             docker compose up -d
             docker image prune -f
+
+            # migrate db
+            docker compose exec backend pnpm prisma migrate deploy
