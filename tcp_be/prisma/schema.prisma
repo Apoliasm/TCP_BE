@@ -53,6 +53,8 @@ model ListingItem {
   listingId      Int
   listingImageId Int?
   name           String
+  itemId         Int?          
+  item           Item?          @relation(fields: [itemId], references: [id], onDelete: Cascade)
   pricePerUnit   Int
   unit           Int
   detailText     String?
@@ -72,4 +74,12 @@ enum ListingStatus {
   RESERVED
   SOLD
   DELETED
+}
+
+model Item {
+  id Int   @id @default(autoincrement())
+  name String
+  listingitems  ListingItem[]
+
+  @@unique([name])
 }

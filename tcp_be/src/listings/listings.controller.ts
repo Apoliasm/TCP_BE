@@ -14,7 +14,7 @@ import {
   ListingSummaryResponseDto,
 } from './dto/listing.dto';
 import { ApiBody, ApiOkResponse, ApiQuery, ApiResponse } from '@nestjs/swagger';
-import { ItemSearchQuery } from './dto/listing-item.dto';
+import { ItemSearchQuery } from 'src/item/dto/item.dto';
 
 @Controller('listings')
 export class ListingsController {

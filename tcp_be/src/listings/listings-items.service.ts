@@ -1,6 +1,9 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
-import { CreateItemDto, ItemResponseDto } from './dto/listing-item.dto';
+import {
+  CreateListingItemDto,
+  ListingItemResponseDto,
+} from './dto/listing-item.dto';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
@@ -9,7 +12,7 @@ export class ListingItemsService {
 
   async createListingItem(
     listingId: number,
-    items: CreateItemDto[],
+    items: CreateListingItemDto[],
     tx?: Prisma.TransactionClient,
   ) {
     let client: Prisma.TransactionClient | PrismaService = this.prisma;

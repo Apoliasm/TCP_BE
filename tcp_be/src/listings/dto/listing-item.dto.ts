@@ -43,9 +43,17 @@ export class ListingItemDto {
   @IsInt()
   @Min(1)
   quantity?: number = 1;
+
+  @ApiPropertyOptional({
+    description: 'item Id',
+    type: 'number',
+  })
+  @IsOptional()
+  @IsInt()
+  itemId?: number;
 }
 
-export class CreateItemDto extends ListingItemDto {
+export class CreateListingItemDto extends ListingItemDto {
   @ApiPropertyOptional({
     description: '이 아이템이 속할 이미지 ID (없으면 기타/미분류)',
     example: 12,
@@ -55,7 +63,7 @@ export class CreateItemDto extends ListingItemDto {
   listingImageId?: number;
 }
 
-export class ItemResponseDto extends ListingItemDto {
+export class ListingItemResponseDto extends ListingItemDto {
   @ApiProperty({
     type: 'number',
   })
@@ -69,14 +77,4 @@ export class ItemResponseDto extends ListingItemDto {
     type: Date,
   })
   updatedAt: Date;
-}
-
-export class ItemSearchQuery {
-  @ApiProperty({
-    description: '검색할 아이템 이름(부분 검색)',
-    example: '후와로스',
-  })
-  @IsOptional()
-  @IsString()
-  query?: string;
 }
