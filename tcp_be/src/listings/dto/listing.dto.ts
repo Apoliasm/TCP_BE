@@ -14,7 +14,10 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ListingStatus } from '@prisma/client';
-import { CreateItemDto, ItemResponseDto } from './listing-item.dto';
+import {
+  CreateListingItemDto,
+  ListingItemResponseDto,
+} from './listing-item.dto';
 import {
   CreateListingImageDto,
   ListingImageResponseDto,
@@ -61,13 +64,13 @@ export class ListingDto {
 export class CreateListingDto extends ListingDto {
   @ApiPropertyOptional({
     description: '아이템 목록(선택)',
-    type: [CreateItemDto],
+    type: [CreateListingItemDto],
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateItemDto)
-  items?: CreateItemDto[];
+  @Type(() => CreateListingItemDto)
+  items?: CreateListingItemDto[];
 }
 
 export class ListingSummaryResponseDto extends ListingDto {
@@ -86,18 +89,18 @@ export class ListingSummaryResponseDto extends ListingDto {
   @ApiProperty({ type: 'string' })
   thumbnailURL: string;
 
-  @ApiProperty({ type: [PickType(ItemResponseDto, ['name', 'id'])] })
-  items: Pick<ItemResponseDto, 'name' | 'id'>[];
+  @ApiProperty({ type: [PickType(ListingItemResponseDto, ['name', 'id'])] })
+  items: Pick<ListingItemResponseDto, 'name' | 'id'>[];
 }
 
 export class ListingResponseDto extends ListingDto {
   @ApiPropertyOptional({
     description: '아이템 목록(선택)',
-    type: [CreateItemDto],
+    type: [CreateListingItemDto],
   })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => CreateItemDto)
-  items?: CreateItemDto[];
+  @Type(() => CreateListingItemDto)
+  items?: CreateListingItemDto[];
 }

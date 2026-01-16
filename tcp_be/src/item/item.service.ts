@@ -10,4 +10,20 @@ import { Injectable } from '@nestjs/common';
 export class ItemService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async createItem(dto: CreateItemDto) {
+    return this.prisma.item.create({
+      data: dto,
+    });
+  }
+  async findItemByName(query: ItemSearchQuery): Promise<ItemResponseDto[]> {
+    const queryString = query.query ?? '';
+
+    return this.prisma.item.findMany({
+      where: {
+        name: {
+          contains: queryString,
+        },
+      },
+    });
+  }
 }
