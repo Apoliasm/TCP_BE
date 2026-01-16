@@ -17,11 +17,11 @@ export class ListingItemsService {
     if (!items?.length)
       throw new BadRequestException('생성할 ListingItem이 없습니다.');
 
-    const itemToCreate: Prisma.ItemCreateManyInput[] = [];
+    const itemToCreate: Prisma.ListingItemCreateManyInput[] = [];
     for (const item of items) {
       itemToCreate.push({ ...item, listingId });
     }
-    const createManyIds = await client.item.createManyAndReturn({
+    const createManyIds = await client.listingItem.createManyAndReturn({
       data: itemToCreate,
       select: { id: true },
     });

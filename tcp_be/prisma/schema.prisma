@@ -27,7 +27,7 @@ model Listing {
   status    ListingStatus  @default(ON_SALE)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
-  Item      ListingItem[]
+  items      ListingItem[]
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   images    ListingImage[]
 
@@ -41,7 +41,7 @@ model ListingImage {
   url       String
   order     Int      @default(0)
   createdAt DateTime @default(now())
-  Item      ListingItem[]
+  items      ListingItem[]
   listing   Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([listingId, order])
@@ -58,7 +58,7 @@ model ListingItem {
   detailText     String?
   quantity       Int           @default(1)
   createdAt      DateTime      @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime      @updatedAt
   Listing        Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
   ListingImage   ListingImage? @relation(fields: [listingImageId], references: [id])
 

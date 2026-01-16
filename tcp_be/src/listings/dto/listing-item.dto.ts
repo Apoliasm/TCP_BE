@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString, Min, MinLength } from 'class-validator';
 
 export class ListingItemDto {
@@ -59,6 +60,15 @@ export class ItemResponseDto extends ListingItemDto {
     type: 'number',
   })
   id: number;
+
+  @ApiProperty({
+    type: Date,
+  })
+  createdAt: Date;
+  @ApiProperty({
+    type: Date,
+  })
+  updatedAt: Date;
 }
 
 export class ItemSearchQuery {

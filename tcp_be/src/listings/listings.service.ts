@@ -101,7 +101,7 @@ export class ListingsService {
     const keyword = q.trim();
     if (!keyword) return [];
 
-    const rows = await this.prisma.item.findMany({
+    const rows = await this.prisma.listingItem.findMany({
       where: {
         name: {
           contains: keyword,
