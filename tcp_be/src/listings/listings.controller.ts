@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -13,7 +14,15 @@ import {
   ListingResponseDto,
   ListingSummaryResponseDto,
 } from './dto/listing.dto';
-import { ApiBody, ApiOkResponse, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ItemSearchQuery } from 'src/item/dto/item.dto';
 
 @Controller('listings')
@@ -48,5 +57,21 @@ export class ListingsController {
       return this.listingsService.findListingIdsByItemName(keyword);
     }
     return this.listingsService.findAll();
+  }
+
+
+  @Delete(':id/delete')
+  @ApiOperation({ summary: 'Listing 완전 삭제 (Hard Delete - DB에서 실제 삭제, 주의: 관련 데이터도 함께 삭제됨)' })
+  @ApiParam({ name: 'id', description: 'Listing ID' })
+  @ApiQuery({ name: 'userId', required: false, description: '사용자 ID (권한 확인용)' })
+  @ApiOkResponse({ type: ListingResponseDto })
+  @ApiResponse({ status: 404, description: 'Listing not found' })
+  @ApiResponse({ status: 403, description: 'Permission denied' })
+  async hardRemove(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('userId') userId?: string,
+  ) {
+    const userIdNum = userId ? parseInt(userId, 10) : undefined;
+    return this.listingsService.hardRemove(id, userIdNum);
   }
 }

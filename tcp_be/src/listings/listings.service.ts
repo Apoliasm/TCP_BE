@@ -161,4 +161,35 @@ export class ListingsService {
       throw error;
     }
   }
+  /**
+   * Listing 완전 삭제 (Hard Delete - DB에서 실제 삭제)
+   * 주의: 관련된 모든 데이터가 Cascade로 삭제됩니다.
+   * @param id listing ID
+   * @param userId 삭제하려는 사용자 ID (권한 확인용)
+   * @returns 삭제된 listing
+   */
+  async hardRemove(id: number, userId?: number) {
+    // listing 존재 확인
+    const listing = await this.prisma.listing.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+
+    if (!listing) {
+      throw new NotFoundException('Listing not found');
+    }
+
+    // 권한 확인 (userId가 제공된 경우)
+    if (userId !== undefined && listing.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to delete this listing');
+    }
+
+    // Hard delete: 실제 삭제 (Cascade로 관련 데이터도 함께 삭제됨)
+    return this.prisma.listing.delete({
+      where: { id },
+    });
+  }
 }
