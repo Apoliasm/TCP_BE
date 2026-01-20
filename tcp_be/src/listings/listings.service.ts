@@ -119,7 +119,7 @@ export class ListingsService {
     return this.getListingItemSummary(ids);
   }
 
-  private async getListingItemSummary(ids?: number[]) {
+  async getListingItemSummary(ids?: number[],userId?:number) {
     const args = {
       include: {
         images: true,
@@ -128,30 +128,49 @@ export class ListingsService {
           select: {
             name: true,
             id: true,
+            itemId:true,
+            item:{
+              select:{
+                name:true
+              }
+            }
           },
         },
       },
       orderBy: { createdAt: 'desc' },
+      where: {
+        status: {
+          not: ListingStatus.DELETED, // 삭제된 listing 제외
+        },
       ...(ids?.length
         ? {
-            where: {
               id: { in: ids },
-            },
+            }
+          : {}),
+        ...(userId
+          ? {
+              userId: userId,
           }
         : {}),
+      },
+      
+      
     } satisfies Prisma.ListingFindManyArgs;
 
     try {
       const findMany = await this.prisma.listing.findMany(args);
 
-      const summary: ListingSummaryResponseDto[] = findMany.map((item) => {
-        const { images, user, ...rest } = item;
+      const summary: ListingSummaryResponseDto[] = findMany.map((currentListingItem) => {
+        const { images, user,items, ...rest } = currentListingItem;
+        const tags = items.map((item) => ({
+          name: item.item?.name ?? '',
+        }));
         return {
           ...rest,
           userId: user.id,
           useNickName: user.nickname,
           thumbnailURL: images[0]?.url ?? '',
-        };
+          tags};
       });
 
       console.log(summary);
@@ -161,6 +180,9 @@ export class ListingsService {
       throw error;
     }
   }
+
+ 
+
   /**
    * Listing 완전 삭제 (Hard Delete - DB에서 실제 삭제)
    * 주의: 관련된 모든 데이터가 Cascade로 삭제됩니다.

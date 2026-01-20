@@ -22,6 +22,7 @@ import {
   CreateListingImageDto,
   ListingImageResponseDto,
 } from './listing-image.dto';
+import { ItemDto } from 'src/item/dto/item.dto';
 
 export class ListingDto {
   @ApiProperty({ description: '판매자(User) id', example: 1 })
@@ -90,7 +91,7 @@ export class ListingSummaryResponseDto extends ListingDto {
   thumbnailURL: string;
 
   @ApiProperty({ type: [PickType(ListingItemResponseDto, ['name', 'id'])] })
-  items: Pick<ListingItemResponseDto, 'name' | 'id'>[];
+  tags: Pick<ListingItemResponseDto, 'name'>[];
 }
 
 export class ListingResponseDto extends ListingDto {
