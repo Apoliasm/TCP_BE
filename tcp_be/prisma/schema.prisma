@@ -15,7 +15,7 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   listings  Listing[]
-
+  subscribedItems   Item[]
   @@index([createdAt])
 }
 
@@ -30,7 +30,6 @@ model Listing {
   items      ListingItem[]
   user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   images    ListingImage[]
-
   @@index([status, createdAt])
   @@index([userId, createdAt])
 }
@@ -80,6 +79,7 @@ model Item {
   id Int   @id @default(autoincrement())
   name String
   listingitems  ListingItem[]
+  subscribedUsers  User[]
 
   @@unique([name])
 }
