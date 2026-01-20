@@ -3,25 +3,56 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CreateListingDto, ListingSummaryResponseDto } from './dto/listing.dto';
 import { ListingItemsService } from './listings-items.service';
-import { Prisma } from '@prisma/client';
+import { Prisma, ListingStatus } from '@prisma/client';
+import { OpenAIService } from 'src/openai/openai.service';
 
 @Injectable()
 export class ListingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly listingItem: ListingItemsService,
+    private readonly openai: OpenAIService,
   ) {}
 
   async create(dto: CreateListingDto) {
-    return this.prisma.$transaction(async (tx) => {
-      if (!dto.items || dto.items.length === 0) {
-        throw new BadRequestException('추가할 item이 없습니다.');
+   
+    if (!dto.items || dto.items.length === 0) {
+      throw new BadRequestException('추가할 item이 없습니다.');
+    }
+    let createItems = dto.items
+   
+    let filteredItems = await this.openai.filterItemName(createItems.map((item) => item.name));
+    
+    // forEach는 async를 기다리지 않으므로 for...of 사용
+    for (const filteredItem of filteredItems) {
+      const index = filteredItem.index;
+      
+      // cleanName이 null이거나 빈 문자열인 경우 스킵
+      if (!filteredItem.cleanName || filteredItem.cleanName.trim() === '') {
+        continue;
       }
+      
+      const foundItem = await this.prisma.item.upsert({
+        where: {
+          name: filteredItem.cleanName,
+        },
+        create: {
+          name: filteredItem.cleanName,
+        },
+        update: {}
+      });
+      
+      console.log(`Item found/created:`, foundItem);
+      createItems[index].itemId = foundItem.id;
+    }
+    
 
+    return this.prisma.$transaction(async (tx) => {
       if (!dto.images || dto.images.length === 0) {
         throw new BadRequestException('추가할 이미지가 없습니다.');
       }
@@ -36,15 +67,13 @@ export class ListingsService {
       });
 
       // 2) listingItem 생성 (같은 트랜잭션 tx로)
-
       const itemsInput = this.listingItem.createListingItem(
         listing.id,
-        dto.items,
+        createItems,
         tx,
       );
 
       // 3) 업로드된 이미지를 게시글과 일괄 연결
-
       const imageIds = dto.images
         .map((img) => img.id)
         .filter((id): id is number => typeof id === 'number');
@@ -118,7 +147,7 @@ export class ListingsService {
 
     return this.getListingItemSummary(ids);
   }
-
+ 
   async getListingItemSummary(ids?: number[],userId?:number) {
     const args = {
       include: {
@@ -142,16 +171,16 @@ export class ListingsService {
         status: {
           not: ListingStatus.DELETED, // 삭제된 listing 제외
         },
-      ...(ids?.length
-        ? {
+        ...(ids?.length
+          ? {
               id: { in: ids },
             }
           : {}),
         ...(userId
           ? {
               userId: userId,
-          }
-        : {}),
+            }
+          : {}),
       },
       
       
@@ -159,7 +188,7 @@ export class ListingsService {
 
     try {
       const findMany = await this.prisma.listing.findMany(args);
-
+      
       const summary: ListingSummaryResponseDto[] = findMany.map((currentListingItem) => {
         const { images, user,items, ...rest } = currentListingItem;
         const tags = items.map((item) => ({

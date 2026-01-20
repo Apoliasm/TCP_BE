@@ -7,9 +7,10 @@ import { ListingItemsController } from './listing-item.controller';
 
 import { PrismaService } from 'src/database/prisma.service';
 import { PrismaModule } from 'src/database/prisma.module';
+import { OpenAIModule } from 'src/openai/openai.module';
 
 @Module({
-  imports: [], // ItemsService 주입용
+  imports: [OpenAIModule], // ItemsService 주입용
   controllers: [ListingsController, ListingItemsController],
   providers: [ListingsService, ListingItemsService, PrismaService],
   exports: [ListingsService, ListingItemsService],
