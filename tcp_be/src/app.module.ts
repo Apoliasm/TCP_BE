@@ -18,6 +18,7 @@ import { ConfigModule } from '@nestjs/config';
         `.env.${process.env.NODE_ENV || 'development'}`,
         '.env.local',
         '.env',
+        '.env.production'
       ],
       // 환경 변수 검증 (선택사항)
       validationOptions: {
